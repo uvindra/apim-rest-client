@@ -118,7 +118,7 @@ func main() {
 
 	flag.IntVar(&apiOptions.Offset, "offset", constants.UNDEFINED_INT, "Starting point within the complete list of items qualified")
 
-	dataTemplate := flag.String("createdata", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
+	dataTemplate := flag.String("create-data", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
 
 	flag.Parse()
 

@@ -3,7 +3,8 @@ package cmd
 import (
 	"net/url"
 	"encoding/json"
-	"log"
+	"fmt"
+	"os"
 	"bytes"
 	"io/ioutil"
 	"path/filepath"
@@ -11,7 +12,8 @@ import (
 	"apim-rest-client/constants"
 )
 
-const DATA_FILE_PATH = "data" + string(filepath.Separator) + "product.json";
+const DATA_FOLDER = "data"
+const DATA_FILE_PATH = DATA_FOLDER + string(filepath.Separator) + "product.json";
 
 type ProductMetaData struct {
 	Name           string  `json:"name"`
@@ -23,6 +25,14 @@ type ProductMetaData struct {
 }
 
 func readProductDataFile() ProductMetaData {
+	_, noFileErr := os.Stat(DATA_FILE_PATH)
+
+	if os.IsNotExist(noFileErr) {
+		fmt.Println("\nTemplate data file : %s does not exist, please run `./arc -create-data=product` to create it", DATA_FILE_PATH)
+		fmt.Println()
+		os.Exit(0)
+	}
+
 	b, err := ioutil.ReadFile(DATA_FILE_PATH)
 
 	if err != nil {
@@ -48,6 +58,8 @@ func createProductDataFile() {
 	productMetaData.Provider = "admin"
 	productMetaData.ThrottlingTier = []string{"Unlimited", "Gold"}
 	productMetaData.Visibility = "PUBLIC"
+
+	_ = os.Mkdir(DATA_FOLDER, 0777)
 
 	content, _ := json.MarshalIndent(productMetaData, "", "    ")
 	err := ioutil.WriteFile(DATA_FILE_PATH, content, 0644)
@@ -95,7 +107,7 @@ func publisherCreateProduct(apiOptions *APIOptions, productURL string, token str
 	data, err := json.Marshal(productInfo)
 
 	if err != nil {
-		log.Fatalf("JSON marshaling failed: %s", err)
+		fmt.Println("JSON marshaling failed: %s", err)
 	}
 
 	req := comm.CreatePost(productURL, bytes.NewBuffer(data))
