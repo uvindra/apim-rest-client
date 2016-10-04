@@ -6,7 +6,9 @@ Currently you can add and get API Products
 
 2. Run the command `go build arc.go` to build
 
-3. Run the command line executable `arc` as follows,
+3. Configure the client using the *config/config.json* file
+
+4. Run the command line executable `arc` as follows,
     
      Function | Usage 
     ---------- | -------
