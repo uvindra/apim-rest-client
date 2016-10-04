@@ -6,11 +6,11 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"path/filepath"
-	"apim_rest_client/dcr"
-	"apim_rest_client/token"
-	"apim_rest_client/persist"
-	"apim_rest_client/cmd"
-	"apim_rest_client/constants"
+	"apim-rest-client/dcr"
+	"apim-rest-client/token"
+	"apim-rest-client/persist"
+	"apim-rest-client/cmd"
+	"apim-rest-client/constants"
 	)
 
 const CONFIG_FILE_PATH = "config" + string(filepath.Separator) + "config.json";
@@ -101,7 +101,7 @@ func getTokens(credentials *persist.OAuthCredentials, confJSON *Config) {
 
 
 func main() {
-	flags := cmd.Flags{}
+	apiOptions := cmd.APIOptions{}
 
 	// Customize flag usage output to prevent default values being printed
 	flag.Usage = func() {
@@ -109,17 +109,20 @@ func main() {
 		//flag.PrintDefaults()
 	}
 
-
-	flag.StringVar(&flags.Resource, "resource", constants.UNDEFINED_STRING, "Desired resource in the format " +
+	flag.StringVar(&apiOptions.Resource, "resource", constants.UNDEFINED_STRING, "Desired resource in the format " +
 			"<location of resource>:<resource name> (example: apis resource in publisher = publisher:apis)")
 
-	flag.StringVar(&flags.Query, "query", constants.UNDEFINED_STRING, "Search query")
+	flag.StringVar(&apiOptions.Query, "query", constants.UNDEFINED_STRING, "Search query")
 
-	flag.IntVar(&flags.Limit, "limit", constants.UNDEFINED_INT, "Maximum size of resource array to return")
+	flag.IntVar(&apiOptions.Limit, "limit", constants.UNDEFINED_INT, "Maximum size of resource array to return")
 
-	flag.IntVar(&flags.Offset, "offset", constants.UNDEFINED_INT, "Starting point within the complete list of items qualified")
+	flag.IntVar(&apiOptions.Offset, "offset", constants.UNDEFINED_INT, "Starting point within the complete list of items qualified")
+
+	dataTemplate := flag.String("createdata", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
 
 	flag.Parse()
+
+	cmd.CreateData(*dataTemplate)
 
 	confJSON := readConfig()
 
@@ -135,5 +138,5 @@ func main() {
 
 	credentials := persist.ReadAppCredentials()
 
-	cmd.ProcessArgs(&flags, confJSON.PublisherAPI, confJSON.StoreAPI, credentials.AccessToken)
+	cmd.InvokeAPI(&apiOptions, confJSON.PublisherAPI, confJSON.StoreAPI, credentials.AccessToken)
 }

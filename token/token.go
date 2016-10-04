@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"encoding/json"
-	"apim_rest_client/constants"
-	"apim_rest_client/comm"
+	"apim-rest-client/constants"
+	"apim-rest-client/comm"
 )
 
 type TokenResponse struct {
@@ -24,7 +24,11 @@ type Error struct {
 
 
 func invokeTokenAPI(request *http.Request) (TokenResponse, *Error) {
+	comm.PrintRequest(constants.TOKEN_API_REQUEST_LOG_STRING, request)
+
 	resp := comm.SendHTTPRequest(request)
+
+	comm.PrintResponse(constants.TOKEN_API_RESPONSE_LOG_STRING, resp)
 
 	defer resp.Body.Close()
 
@@ -59,13 +63,7 @@ func RequestToken_PasswordGrant(tokenURL string, clientID string, clientSecret s
 
 	comm.AddQueryParams(&values, req)
 
-	jsonResp, error := invokeTokenAPI(req)
-
-	fmt.Println()
-	fmt.Println(jsonResp)
-	fmt.Printf("AccessToken : %s\n", jsonResp.AccessToken)
-
-	return  jsonResp, error
+	return invokeTokenAPI(req)
 }
 
 func RefreshToken(tokenURL string, clientID string, clientSecret string,
@@ -82,11 +80,5 @@ func RefreshToken(tokenURL string, clientID string, clientSecret string,
 	values.Add(constants.SCOPE_HEADER, scope)
 	comm.AddQueryParams(&values, req)
 
-	jsonResp, error := invokeTokenAPI(req)
-
-	fmt.Println()
-	fmt.Println(jsonResp)
-	fmt.Printf("AccessToken : %s\n", jsonResp.AccessToken)
-
-	return  jsonResp, error
+	return invokeTokenAPI(req)
 }

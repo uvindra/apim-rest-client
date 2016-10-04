@@ -1,8 +1,14 @@
 # Persistent data
 auth_info.json
 
+#API data
+product.json
+
 # Executable
 arc
+
+#idea
+.idea
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

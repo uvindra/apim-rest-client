@@ -3,12 +3,12 @@ package comm
 import (
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"crypto/tls"
 	"encoding/base64"
 	"io"
-	"io/ioutil"
-	"apim_rest_client/constants"
+	"apim-rest-client/constants"
 )
 
 func CreateGet(url string) *http.Request {
@@ -52,14 +52,27 @@ func SendHTTPRequest(request *http.Request) *http.Response {
 	return resp
 }
 
-func PrintResponse(response *http.Response) {
-	body, err := ioutil.ReadAll(response.Body)
+func PrintRequest(logString string, request *http.Request) {
+	dump, err := httputil.DumpRequestOut(request, true)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", logString);
+	fmt.Printf("\n%s\n", dump)
+	fmt.Printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+}
+
+func PrintResponse(logString string, response *http.Response) {
+	dump, err := httputil.DumpResponse(response, true)
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("\n\n%s\n\n", body)
+	fmt.Printf("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< %s <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", logString);
+	fmt.Printf("\n%s\n", dump)
+	fmt.Printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 }
 
 

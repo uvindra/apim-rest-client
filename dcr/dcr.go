@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"bytes"
-	"apim_rest_client/comm"
+	"apim-rest-client/comm"
+	"apim-rest-client/constants"
 )
 
 type DCRRequest struct {
@@ -47,7 +48,11 @@ func Register(dcrURL string, userName string, password string, regInfo DCRReques
 
 	comm.SetDCRHeaders(userName, password, req)
 
+	comm.PrintRequest(constants.DCR_REQUEST_LOG_STRING, req)
+
 	resp := comm.SendHTTPRequest(req)
+
+	comm.PrintResponse(constants.DCR_RESPONSE_LOG_STRING, resp)
 
 	defer resp.Body.Close()
 

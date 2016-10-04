@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"bytes"
-	"apim_rest_client/comm"
-	"apim_rest_client/constants"
+	"apim-rest-client/comm"
+	"apim-rest-client/constants"
 )
 
 
@@ -79,23 +79,23 @@ type ApiMetaData struct {
 }
 
 
-func getAPIsPublisher(flags *Flags, apiURL string, token string) {
+func publisherGetAPIs(apiOptions *APIOptions, apiURL string, token string) {
 	req := comm.CreateGet(apiURL)
 
 	comm.SetRestAPIHeaders(token, req)
 
 	values := url.Values{}
 
-	if flags.Limit != constants.UNDEFINED_INT {
-		values.Add(constants.LIMIT_KEY, string(flags.Limit))
+	if apiOptions.Limit != constants.UNDEFINED_INT {
+		values.Add(constants.LIMIT_KEY, string(apiOptions.Limit))
 	}
 
-	if flags.Offset != constants.UNDEFINED_INT {
-		values.Add(constants.OFFSET_KEY, string(flags.Offset))
+	if apiOptions.Offset != constants.UNDEFINED_INT {
+		values.Add(constants.OFFSET_KEY, string(apiOptions.Offset))
 	}
 
-	if flags.Query != constants.UNDEFINED_STRING {
-		values.Add(constants.QUERY_KEY, flags.Query)
+	if apiOptions.Query != constants.UNDEFINED_STRING {
+		values.Add(constants.QUERY_KEY, apiOptions.Query)
 	}
 
 	comm.AddQueryParams(&values, req)
@@ -104,7 +104,7 @@ func getAPIsPublisher(flags *Flags, apiURL string, token string) {
 
 	defer resp.Body.Close()
 
-	comm.PrintResponse(resp)
+	comm.PrintResponse(constants.REST_API_RESPONSE_LOG_STRING, resp)
 }
 
 
@@ -124,7 +124,7 @@ func createAPIDefinition() *ApiMetaData {
 	return &apiMetaData
 }
 
-func publisherCreateAPI(flags *Flags, apiURL string, token string) {
+func publisherCreateAPI(apiOptions *APIOptions, apiURL string, token string) {
 
 	apiInfo := createAPIDefinition()
 
@@ -142,5 +142,5 @@ func publisherCreateAPI(flags *Flags, apiURL string, token string) {
 
 	defer resp.Body.Close()
 
-	comm.PrintResponse(resp)
+	comm.PrintResponse(constants.REST_API_RESPONSE_LOG_STRING, resp)
 }

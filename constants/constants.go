@@ -17,3 +17,12 @@ const QUERY_KEY = "query"
 
 const UNDEFINED_STRING = "N/A"
 const UNDEFINED_INT = -1
+
+const DCR_REQUEST_LOG_STRING = "DCR Request"
+const DCR_RESPONSE_LOG_STRING = "DCR Response"
+
+const TOKEN_API_REQUEST_LOG_STRING = "Token API Request"
+const TOKEN_API_RESPONSE_LOG_STRING = "Token API Response"
+
+const REST_API_REQUEST_LOG_STRING = "REST API Request"
+const REST_API_RESPONSE_LOG_STRING = "REST API Response"
