@@ -1,4 +1,4 @@
-*A*PIM *R*EST *C*lient
+**A**PIM **R**EST **C**lient
 
 Currently you can add and get API Products
 
@@ -6,8 +6,10 @@ Currently you can add and get API Products
 
 2. Run the command `go build arc.go` to build
 
-3. Usage
+3. Run the command line executable `arc` as follows,
     
-    To generate template *data/product.json* for creating a product - `./arc -create-data=product`
-    To create a new product using the data in *data/product.json* -  `./arc -resource=publisher:create:product`
-    To get list of existing products - `./arc -resource=publisher:view:products`
+     Function | Usage 
+    ---------- | -------
+    To generate template *data/product.json* for creating a product | `./arc -create-data=product` 
+    To create a new product using the data in *data/product.json* |  `./arc -resource=publisher:create:product` 
+    To get list of existing products | `./arc -resource=publisher:view:products` 
