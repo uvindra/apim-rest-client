@@ -3,6 +3,8 @@ auth_info.json
 
 #API data
 product.json
+api.json
+swagger.json
 
 # Executable
 arc

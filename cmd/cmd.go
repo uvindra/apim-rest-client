@@ -8,9 +8,8 @@ import(
 
 type APIOptions struct {
 	Resource string
-	Query string
-	Limit int
-	Offset int
+	URLParams *FlagMap
+	QueryParams *FlagMap
 }
 
 
@@ -20,6 +19,9 @@ func CreateData(dataTemplate string) {
 	switch dataTemplate {
 	case "product":
 		createProductDataFile()
+	case "api":
+		createSwaggerDataFile()
+		createApiDataFile()
 	case constants.UNDEFINED_STRING: // Flag not specified
 		return
 	default:

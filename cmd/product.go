@@ -12,8 +12,7 @@ import (
 	"apim-rest-client/constants"
 )
 
-const DATA_FOLDER = "data"
-const DATA_FILE_PATH = DATA_FOLDER + string(filepath.Separator) + "product.json";
+const PRODUCT_DATA_FILE_PATH = constants.DATA_FOLDER + string(filepath.Separator) + "product.json";
 
 type ProductMetaData struct {
 	Name           string  `json:"name"`
@@ -25,15 +24,15 @@ type ProductMetaData struct {
 }
 
 func readProductDataFile() ProductMetaData {
-	_, noFileErr := os.Stat(DATA_FILE_PATH)
+	_, noFileErr := os.Stat(PRODUCT_DATA_FILE_PATH)
 
 	if os.IsNotExist(noFileErr) {
-		fmt.Println("\nTemplate data file : %s does not exist, please run `./arc -create-data=product` to create it", DATA_FILE_PATH)
+		fmt.Println("\nTemplate data file : %s does not exist, please run `./arc -create-data=product` to create it", PRODUCT_DATA_FILE_PATH)
 		fmt.Println()
 		os.Exit(0)
 	}
 
-	b, err := ioutil.ReadFile(DATA_FILE_PATH)
+	b, err := ioutil.ReadFile(PRODUCT_DATA_FILE_PATH)
 
 	if err != nil {
 		panic(err)
@@ -59,10 +58,10 @@ func createProductDataFile() {
 	productMetaData.ThrottlingTier = []string{"Unlimited", "Gold"}
 	productMetaData.Visibility = "PUBLIC"
 
-	_ = os.Mkdir(DATA_FOLDER, 0777)
+	_ = os.Mkdir(constants.DATA_FOLDER, 0777)
 
 	content, _ := json.MarshalIndent(productMetaData, "", "    ")
-	err := ioutil.WriteFile(DATA_FILE_PATH, content, 0644)
+	err := ioutil.WriteFile(PRODUCT_DATA_FILE_PATH, content, 0644)
 
 	if err != nil {
 		panic(err)
@@ -76,18 +75,6 @@ func publisherGetProducts(apiOptions *APIOptions, productURL string, token strin
 	comm.SetRestAPIHeaders(token, req)
 
 	values := url.Values{}
-
-	if apiOptions.Limit != constants.UNDEFINED_INT {
-		values.Add(constants.LIMIT_KEY, string(apiOptions.Limit))
-	}
-
-	if apiOptions.Offset != constants.UNDEFINED_INT {
-		values.Add(constants.OFFSET_KEY, string(apiOptions.Offset))
-	}
-
-	if apiOptions.Query != constants.UNDEFINED_STRING {
-		values.Add(constants.QUERY_KEY, apiOptions.Query)
-	}
 
 	comm.AddQueryParams(&values, req)
 

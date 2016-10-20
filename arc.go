@@ -102,6 +102,8 @@ func getTokens(credentials *persist.OAuthCredentials, confJSON *Config) {
 
 func main() {
 	apiOptions := cmd.APIOptions{}
+	urlParams := cmd.FlagMap{}
+	queryParams := cmd.FlagMap{}
 
 	// Customize flag usage output to prevent default values being printed
 	flag.Usage = func() {
@@ -112,17 +114,18 @@ func main() {
 	flag.StringVar(&apiOptions.Resource, "resource", constants.UNDEFINED_STRING, "Desired resource in the format " +
 			"<location of resource>:<resource name> (example: apis resource in publisher = publisher:apis)")
 
-	flag.StringVar(&apiOptions.Query, "query", constants.UNDEFINED_STRING, "Search query")
+	flag.Var(&urlParams, "url-param", "")
 
-	flag.IntVar(&apiOptions.Limit, "limit", constants.UNDEFINED_INT, "Maximum size of resource array to return")
-
-	flag.IntVar(&apiOptions.Offset, "offset", constants.UNDEFINED_INT, "Starting point within the complete list of items qualified")
+	flag.Var(&queryParams, "query-param", "")
 
 	dataTemplate := flag.String("create-data", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
 
 	flag.Parse()
 
 	cmd.CreateData(*dataTemplate)
+
+	apiOptions.URLParams = &urlParams
+	apiOptions.QueryParams = &queryParams
 
 	confJSON := readConfig()
 
