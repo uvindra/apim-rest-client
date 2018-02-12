@@ -17,11 +17,11 @@ func generateRandomClientName() string {
 }
 
 
-func SetDCRParameters(request *DCRRequest) {
+func SetDCRParameters(request *DCRRequest, username string) {
 	request.CallbackURL = "www.google.lk"
 	request.ClientName = generateRandomClientName()
 	request.TokenScope = "Production"
-	request.Owner = "admin"
+	request.Owner = username
 	request.SupportedGrantTypes = "password refresh_token"
 	request.IsSaaSApp = true
 }

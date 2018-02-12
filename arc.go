@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"flag"
+	"os"
 	"io/ioutil"
 	"encoding/json"
 	"path/filepath"
@@ -73,7 +74,7 @@ func refreshExistingTokens(confJSON *Config) {
 
 func registerClient(confJSON *Config) persist.OAuthCredentials {
 	var dcrRequest dcr.DCRRequest
-	dcr.SetDCRParameters(&dcrRequest)
+	dcr.SetDCRParameters(&dcrRequest, confJSON.UserName)
 
 	dcrResp := dcr.Register(confJSON.DcrURL, confJSON.UserName, confJSON.Password, dcrRequest)
 
@@ -102,44 +103,79 @@ func getTokens(credentials *persist.OAuthCredentials, confJSON *Config) {
 
 func main() {
 	apiOptions := cmd.APIOptions{}
-	urlParams := cmd.FlagMap{}
 	queryParams := cmd.FlagMap{}
 
 	// Customize flag usage output to prevent default values being printed
-	flag.Usage = func() {
-		//fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		//flag.PrintDefaults()
+	//flag.Usage = func() {
+	//	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+	//	flag.PrintDefaults()
+	//}
+
+	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
+	callCommand := flag.NewFlagSet("call", flag.ExitOnError)
+	createDataCommand := flag.NewFlagSet("create-data", flag.ExitOnError)
+
+	productVersion := initCommand.String("version", constants.UNDEFINED_STRING, "APIM product version being used(example: 2.1.0)")
+
+	callCommand.StringVar(&apiOptions.API, "api", constants.UNDEFINED_STRING, "REST API to invoked(example: publisher|store|admin)")
+	callCommand.StringVar(&apiOptions.Method, "method", constants.UNDEFINED_STRING, "HTTP Method(example: GET)")
+	callCommand.StringVar(&apiOptions.Resource, "resource", constants.UNDEFINED_STRING, "Desired resource path(example: /apis)")
+	callCommand.StringVar(&apiOptions.Body, "body", constants.UNDEFINED_STRING, "File path to content of HTTP body(example: ./body.json)")
+
+	callCommand.Var(&queryParams, "query-param", "")
+
+	dataTemplate := createDataCommand.String("create-data", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
+
+	//flag.Parse()
+
+	if len(os.Args) < 2 {
+		fmt.Println("Mandatory arguments missing.")
+		os.Exit(1)
 	}
 
-	flag.StringVar(&apiOptions.Resource, "resource", constants.UNDEFINED_STRING, "Desired resource in the format " +
-			"<location of resource>:<resource name> (example: apis resource in publisher = publisher:apis)")
-
-	flag.Var(&urlParams, "url-param", "")
-
-	flag.Var(&queryParams, "query-param", "")
-
-	dataTemplate := flag.String("create-data", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
-
-	flag.Parse()
-
-	cmd.CreateData(*dataTemplate)
-
-	apiOptions.URLParams = &urlParams
-	apiOptions.QueryParams = &queryParams
-
-	confJSON := readConfig()
-
-	if persist.IsAppCredentialsExist() {
-		fmt.Println("Credentials already exist")
-		refreshExistingTokens(&confJSON)
-	} else {
-		fmt.Println("Credentials do not exist")
-		credentials := registerClient(&confJSON)
-
-		getTokens(&credentials, &confJSON)
+	switch os.Args[1] {
+	case "init":
+		initCommand.Parse(os.Args[2:])
+	case "call":
+		callCommand.Parse(os.Args[2:])
+	case "create-data":
+		createDataCommand.Parse(os.Args[2:])
+	default:
+		flag.PrintDefaults()
+		os.Exit(1)
 	}
 
-	credentials := persist.ReadAppCredentials()
+	if initCommand.Parsed() {
+		persist.GenerateConfig(productVersion)
+	}
 
-	cmd.InvokeAPI(&apiOptions, confJSON.PublisherAPI, confJSON.StoreAPI, credentials.AccessToken)
+	if createDataCommand.Parsed() {
+		cmd.CreateData(*dataTemplate)
+	}
+
+	if callCommand.Parsed() {
+		apiOptions.QueryParams = &queryParams
+
+		fmt.Printf("apiOptions: %+v\n", apiOptions)
+		confJSON := readConfig()
+
+		if persist.IsAppCredentialsExist() {
+			fmt.Println("Credentials already exist")
+			refreshExistingTokens(&confJSON)
+		} else {
+			fmt.Println("Credentials do not exist")
+			credentials := registerClient(&confJSON)
+
+			getTokens(&credentials, &confJSON)
+		}
+
+		credentials := persist.ReadAppCredentials()
+
+
+		basePaths := cmd.BasePaths{}
+		basePaths.PublisherAPI = confJSON.PublisherAPI
+		basePaths.StoreAPI = confJSON.StoreAPI
+
+		cmd.InvokeAPI(&apiOptions, &basePaths, credentials.AccessToken)
+	}
 }

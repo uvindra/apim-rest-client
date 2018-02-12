@@ -31,9 +31,29 @@ func CreatePost(url string, body io.Reader) *http.Request {
 	return req
 }
 
+func CreatePut(url string, body io.Reader) *http.Request {
+	req, err := http.NewRequest("PUT", url, body)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return req
+}
+
+func CreateDelete(url string) *http.Request {
+	req, err := http.NewRequest("DELETE", url, nil)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return req
+}
 
 func AddQueryParams(params *url.Values, request *http.Request) {
 	request.URL.RawQuery = params.Encode()
+	fmt.Println("request.URL.RawQuery: " + request.URL.RawQuery)
 }
 
 
@@ -69,6 +89,8 @@ func PrintResponse(logString string, response *http.Response) {
 	if err != nil {
 		panic(err)
 	}
+
+	//content, _ := json.MarshalIndent(dump, "", "    ")
 
 	fmt.Printf("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< %s <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", logString);
 	fmt.Printf("\n%s\n", dump)
