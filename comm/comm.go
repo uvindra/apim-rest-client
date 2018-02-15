@@ -53,7 +53,6 @@ func CreateDelete(url string) *http.Request {
 
 func AddQueryParams(params *url.Values, request *http.Request) {
 	request.URL.RawQuery = params.Encode()
-	fmt.Println("request.URL.RawQuery: " + request.URL.RawQuery)
 }
 
 
