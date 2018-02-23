@@ -1,27 +1,26 @@
 package token
 
 import (
+	"apim-rest-client/comm"
+	"apim-rest-client/constants"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"encoding/json"
-	"apim-rest-client/constants"
-	"apim-rest-client/comm"
 )
 
 type TokenResponse struct {
-	Scope string `json:"scope"`
-	TokeType string `json:"token_type"`
-	ValidTime int32 `json:"expires_in"`
+	Scope        string `json:"scope"`
+	TokeType     string `json:"token_type"`
+	ValidTime    int32  `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
 }
 
 type Error struct {
-	ErrorType string `json:"error"`
+	ErrorType        string `json:"error"`
 	ErrorDescription string `json:"error_description"`
 }
-
 
 func invokeTokenAPI(request *http.Request) (TokenResponse, *Error) {
 	comm.PrintRequest(constants.TOKEN_API_REQUEST_LOG_STRING, request)
@@ -39,6 +38,7 @@ func invokeTokenAPI(request *http.Request) (TokenResponse, *Error) {
 	case 200:
 		json.NewDecoder(resp.Body).Decode(&jsonResp)
 	case 400:
+	case 401:
 		json.NewDecoder(resp.Body).Decode(&error)
 		return jsonResp, &error
 	default:
@@ -48,7 +48,7 @@ func invokeTokenAPI(request *http.Request) (TokenResponse, *Error) {
 }
 
 func RequestToken_PasswordGrant(tokenURL string, clientID string, clientSecret string,
-					userName string, password string, scope string) (TokenResponse, *Error) {
+	userName string, password string, scope string) (TokenResponse, *Error) {
 	fmt.Println("Request new token with password grant")
 
 	req := comm.CreatePost(tokenURL, nil)
@@ -67,7 +67,7 @@ func RequestToken_PasswordGrant(tokenURL string, clientID string, clientSecret s
 }
 
 func RefreshToken(tokenURL string, clientID string, clientSecret string,
-							refreshToken string, scope string) (TokenResponse, *Error) {
+	refreshToken string, scope string) (TokenResponse, *Error) {
 	fmt.Println("Refresh token")
 
 	req := comm.CreatePost(tokenURL, nil)

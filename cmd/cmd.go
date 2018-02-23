@@ -1,27 +1,27 @@
 package cmd
 
-import(
-	"bytes"
-	"io/ioutil"
-	"fmt"
-	"net/http"
-	"os"
+import (
 	"apim-rest-client/comm"
 	"apim-rest-client/constants"
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
 )
 
 type APIOptions struct {
-	API string
-	Method string
-	Resource string
+	API         string
+	Method      string
+	Resource    string
 	QueryParams *FlagMap
-	Body string
+	Body        string
 }
 
 type BasePaths struct {
 	PublisherAPI string
-	StoreAPI string
-	AdminAPI string
+	StoreAPI     string
+	AdminAPI     string
 }
 
 func CreateData(dataTemplate string) {
@@ -39,29 +39,10 @@ func CreateData(dataTemplate string) {
 	}
 
 	// Since this is a data setup function exit to allow users to customize data values
-	os.Exit(0);
+	os.Exit(0)
 }
 
 func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
-
-	switch apiOptions.Resource {
-	case "publisher:view:apis":
-		publisherGetAPIs(apiOptions, basePaths.PublisherAPI + "/apis", token)
-	case "publisher:create:api":
-		publisherCreateAPI(apiOptions, basePaths.PublisherAPI + "/apis", token)
-	case "publisher:view:products":
-		publisherGetProducts(apiOptions, basePaths.PublisherAPI + "/products", token)
-	case "publisher:create:product":
-		publisherCreateProduct(apiOptions, basePaths.PublisherAPI + "/products", token)
-	case constants.UNDEFINED_STRING:  // Flag not specified
-		return
-	default:
-		genericInvoke(apiOptions, basePaths, token)
-	}
-
-}
-
-func genericInvoke(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	var basePath string
 
 	switch apiOptions.API {

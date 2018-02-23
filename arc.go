@@ -1,52 +1,17 @@
 package main
 
 import (
-	"fmt"
-	"flag"
-	"os"
-	"io/ioutil"
-	"encoding/json"
-	"path/filepath"
-	"apim-rest-client/dcr"
-	"apim-rest-client/token"
-	"apim-rest-client/persist"
 	"apim-rest-client/cmd"
 	"apim-rest-client/constants"
-	)
+	"apim-rest-client/dcr"
+	"apim-rest-client/persist"
+	"apim-rest-client/token"
+	"flag"
+	"fmt"
+	"os"
+)
 
-const CONFIG_FILE_PATH = "config" + string(filepath.Separator) + "config.json";
-
-type Config struct {
-	DcrURL string
-	PublisherAPI string
-	StoreAPI string
-	UserName string
-	Password string
-	TokenURL string
-	Scope string
-}
-
-
-func readConfig() Config {
-	b, err := ioutil.ReadFile(CONFIG_FILE_PATH)
-
-	if err != nil {
-		panic(err)
-	}
-
-	var config Config
-
-	err = json.Unmarshal(b, &config)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return config
-}
-
-
-func refreshExistingTokens(confJSON *Config) {
+func refreshExistingTokens(confJSON *persist.Config) {
 	credentials := persist.ReadAppCredentials()
 
 	tokenResp, error := token.RefreshToken(confJSON.TokenURL, credentials.ClientID, credentials.ClientSecret,
@@ -56,11 +21,16 @@ func refreshExistingTokens(confJSON *Config) {
 		fmt.Printf("Error returned in when refreshing token. error : %s, error_description : %s\n",
 			error.ErrorType, error.ErrorDescription)
 
+		if error.ErrorType == "invalid_client" {
+			fmt.Println("\nRegistered client does not exist, please delete the current 'auth_info.json' and try again")
+			os.Exit(1)
+		}
+
 		tokenResp, error = token.RequestToken_PasswordGrant(confJSON.TokenURL, credentials.ClientID,
 			credentials.ClientSecret, confJSON.UserName, confJSON.Password, confJSON.Scope)
 	}
 
-	if (error == nil) {
+	if error == nil {
 		// Store new access token and refresh token
 		credentials.AccessToken = tokenResp.AccessToken
 		credentials.RefreshToken = tokenResp.RefreshToken
@@ -72,7 +42,7 @@ func refreshExistingTokens(confJSON *Config) {
 	}
 }
 
-func registerClient(confJSON *Config) persist.OAuthCredentials {
+func registerClient(confJSON *persist.Config) persist.OAuthCredentials {
 	var dcrRequest dcr.DCRRequest
 	dcr.SetDCRParameters(&dcrRequest, confJSON.UserName)
 
@@ -85,11 +55,11 @@ func registerClient(confJSON *Config) persist.OAuthCredentials {
 	return credentials
 }
 
-func getTokens(credentials *persist.OAuthCredentials, confJSON *Config) {
+func getTokens(credentials *persist.OAuthCredentials, confJSON *persist.Config) {
 	tokenResp, error := token.RequestToken_PasswordGrant(confJSON.TokenURL, credentials.ClientID,
 		credentials.ClientSecret, confJSON.UserName, confJSON.Password, confJSON.Scope)
 
-	if (error == nil) {
+	if error == nil {
 		credentials.AccessToken = tokenResp.AccessToken
 		credentials.RefreshToken = tokenResp.RefreshToken
 
@@ -99,7 +69,6 @@ func getTokens(credentials *persist.OAuthCredentials, confJSON *Config) {
 			error.ErrorType, error.ErrorDescription)
 	}
 }
-
 
 func main() {
 	apiOptions := cmd.APIOptions{}
@@ -147,6 +116,7 @@ func main() {
 
 	if initCommand.Parsed() {
 		persist.GenerateConfig(productVersion)
+		os.Exit(0)
 	}
 
 	if createDataCommand.Parsed() {
@@ -157,7 +127,13 @@ func main() {
 		apiOptions.QueryParams = &queryParams
 
 		fmt.Printf("apiOptions: %+v\n", apiOptions)
-		confJSON := readConfig()
+
+		if !persist.IsConfigExists() {
+			fmt.Println("'config/config.json' file does not exist. Please execute 'arc init' to create the config file")
+			os.Exit(1)
+		}
+
+		confJSON := persist.ReadConfig()
 
 		if persist.IsAppCredentialsExist() {
 			fmt.Println("Credentials already exist")
@@ -170,7 +146,6 @@ func main() {
 		}
 
 		credentials := persist.ReadAppCredentials()
-
 
 		basePaths := cmd.BasePaths{}
 		basePaths.PublisherAPI = confJSON.PublisherAPI

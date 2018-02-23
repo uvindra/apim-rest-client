@@ -8,7 +8,7 @@ import (
 )
 
 const OAUTH_CREDENTIAL_FILE = "auth_info.json"
-const CONFIG_FILE = "config/config.json"
+const CONFIG_FILE = "config.json"
 
 type OAuthCredentials struct {
 	ClientID     string
@@ -56,6 +56,29 @@ func GenerateConfig(version *string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func IsConfigExists() bool {
+	_, err := os.Stat(CONFIG_FILE)
+	return !os.IsNotExist(err)
+}
+
+func ReadConfig() Config {
+	b, err := ioutil.ReadFile(CONFIG_FILE)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var config Config
+
+	err = json.Unmarshal(b, &config)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return config
 }
 
 func IsAppCredentialsExist() bool {

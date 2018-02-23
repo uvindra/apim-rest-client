@@ -1,6 +1,6 @@
 # Persistent data
 auth_info.json
-config/config.json
+config.json
 
 #API data
 product.json
