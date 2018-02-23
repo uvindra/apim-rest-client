@@ -1,32 +1,31 @@
 package persist
 
 import (
-	"io/ioutil"
+	"apim-rest-client/constants"
 	"encoding/json"
+	"io/ioutil"
 	"os"
-	"fmt"
 )
 
-const OAUTH_CREDENTIAL_FILE = "auth_info.json";
-const CONFIG_FILE = "config/config.json";
+const OAUTH_CREDENTIAL_FILE = "auth_info.json"
+const CONFIG_FILE = "config/config.json"
 
 type OAuthCredentials struct {
-	ClientID string
+	ClientID     string
 	ClientSecret string
-	AccessToken string
+	AccessToken  string
 	RefreshToken string
 }
 
 type Config struct {
-	dcrURL string
-	publisherAPI string
-	storeAPI string
-	userName string
-	password string
-	tokenURL string
-	scope string
+	DcrURL       string `json:"dcrURL"`
+	PublisherAPI string `json:"publisherAPI"`
+	StoreAPI     string `json:"storeAPI"`
+	UserName     string `json:"userName"`
+	Password     string `json:"password"`
+	TokenURL     string `json:"tokenURL"`
+	Scope        string `json:"scope"`
 }
-
 
 func SaveAppCredentials(credentials *OAuthCredentials) {
 	content, _ := json.MarshalIndent(*credentials, "", "    ")
@@ -38,28 +37,18 @@ func SaveAppCredentials(credentials *OAuthCredentials) {
 }
 
 func GenerateConfig(version *string) {
-	var apiVersion string
-
-	switch *version {
-	case "2.0.0":
-		apiVersion = "v0.10"
-	case "2.1.0":
-		apiVersion = "v0.11"
-	case "2.2.0":
-		apiVersion = "v0.11"
-	default:
-		fmt.Println("Unhanlded version specified")
-		return
+	if *version == constants.UNDEFINED_STRING {
+		*version = "v0.11"
 	}
 
 	config := Config{}
-	config.dcrURL = "http://localhost:9763/client-registration/" + apiVersion +"/register"
-	config.publisherAPI = "https://localhost:9443/api/am/publisher/" + apiVersion
-	config.storeAPI = "https://localhost:9443/api/am/store/" + apiVersion
-	config.userName = "admin"
-	config.password = "admin"
-	config.tokenURL = "https://localhost:8243/token"
-	config.scope = "apim:subscribe"
+	config.DcrURL = "http://localhost:9763/client-registration/" + *version + "/register"
+	config.PublisherAPI = "https://localhost:9443/api/am/publisher/" + *version
+	config.StoreAPI = "https://localhost:9443/api/am/store/" + *version
+	config.UserName = "admin"
+	config.Password = "admin"
+	config.TokenURL = "https://localhost:8243/token"
+	config.Scope = "apim:api_view apim:api_create apim:api_publish apim:subscribe"
 
 	content, _ := json.MarshalIndent(config, "", "    ")
 	err := ioutil.WriteFile(CONFIG_FILE, content, 0644)

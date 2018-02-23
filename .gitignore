@@ -1,5 +1,6 @@
 # Persistent data
 auth_info.json
+config/config.json
 
 #API data
 product.json
@@ -11,6 +12,9 @@ arc
 
 #idea
 .idea
+
+#vscode
+.vscode
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

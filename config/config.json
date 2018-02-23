@@ -1,9 +1,0 @@
-{
-  "dcrURL" : "http://localhost:9763/client-registration/v0.10/register",
-  "publisherAPI" : "https://localhost:9443/api/am/publisher/v0.10",
-  "storeAPI" : "https://localhost:9443/api/am/store/v0.10",
-  "userName" : "admin",
-  "password" : "admin",
-  "tokenURL" : "https://localhost:8243/token",
-  "scope" : "apim:api_view apim:api_create apim:product_view apim:product_create"
-}
