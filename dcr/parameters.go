@@ -2,7 +2,7 @@ package dcr
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	"encoding/base32"
 )
 
 func generateRandomClientName() string {
@@ -13,9 +13,8 @@ func generateRandomClientName() string {
 		panic(err)
 	}
 
-	return base64.StdEncoding.EncodeToString(b)
+	return base32.StdEncoding.EncodeToString(b)
 }
-
 
 func SetDCRParameters(request *DCRRequest, username string) {
 	request.CallbackURL = "www.google.lk"
