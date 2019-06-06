@@ -93,7 +93,7 @@ func main() {
 
 	callCommand.Var(&queryParams, "query-param", "")
 
-	dataTemplate := createDataCommand.String("create-data", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
+	dataTemplate := createDataCommand.String("template", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
 
 	//flag.Parse()
 
