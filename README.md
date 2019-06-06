@@ -12,7 +12,7 @@ Currently you can add and get API Products
     
      Function | Usage 
     ---------- | -------
-    To generate template *data/product.json* for creating a product | `./arc -create-data=product` 
+    To generate template *data/product.json* for creating a product | `./arc create-data --template "product"` 
     To create a new product using the data in *data/product.json* |  `./arc -resource=publisher:create:product` 
     To get list of existing products | `./arc -resource=publisher:view:products` 
 
