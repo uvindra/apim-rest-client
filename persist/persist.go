@@ -21,6 +21,7 @@ type Config struct {
 	DcrURL       string `json:"dcrURL"`
 	PublisherAPI string `json:"publisherAPI"`
 	StoreAPI     string `json:"storeAPI"`
+	AdminAPI     string `json:"adminAPI"`
 	UserName     string `json:"userName"`
 	Password     string `json:"password"`
 	TokenURL     string `json:"tokenURL"`
@@ -45,6 +46,7 @@ func GenerateConfig(version *string) {
 	config.DcrURL = "http://localhost:9763/client-registration/" + *version + "/register"
 	config.PublisherAPI = "https://localhost:9443/api/am/publisher/" + *version
 	config.StoreAPI = "https://localhost:9443/api/am/store/" + *version
+	config.AdminAPI = "https://localhost:9443/api/am/admin/" + *version
 	config.UserName = "admin"
 	config.Password = "admin"
 	config.TokenURL = "https://localhost:8243/token"

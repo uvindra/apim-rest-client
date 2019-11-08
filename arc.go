@@ -150,6 +150,7 @@ func main() {
 		basePaths := cmd.BasePaths{}
 		basePaths.PublisherAPI = confJSON.PublisherAPI
 		basePaths.StoreAPI = confJSON.StoreAPI
+		basePaths.AdminAPI = confJSON.AdminAPI
 
 		cmd.InvokeAPI(&apiOptions, &basePaths, credentials.AccessToken)
 	}
