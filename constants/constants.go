@@ -26,5 +26,3 @@ const TOKEN_API_RESPONSE_LOG_STRING = "Token API Response"
 
 const REST_API_REQUEST_LOG_STRING = "REST API Request"
 const REST_API_RESPONSE_LOG_STRING = "REST API Response"
-
-const DATA_FOLDER = "data"
