@@ -2,18 +2,18 @@ package dcr
 
 import (
 	"crypto/rand"
-	"encoding/base32"
+	"encoding/base64"
 )
 
 func generateRandomClientName() string {
-	b := make([]byte, 32)
+	b := make([]byte, 16)
 	_, err := rand.Read(b)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return base32.StdEncoding.EncodeToString(b)
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
 }
 
 func SetDCRParameters(request *DCRRequest, username string) {
