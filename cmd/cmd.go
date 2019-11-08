@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 type APIOptions struct {
@@ -22,24 +21,6 @@ type BasePaths struct {
 	PublisherAPI string
 	StoreAPI     string
 	AdminAPI     string
-}
-
-func CreateData(dataTemplate string) {
-
-	switch dataTemplate {
-	case "product":
-		createProductDataFile()
-	case "api":
-		createSwaggerDataFile()
-		createApiDataFile()
-	case constants.UNDEFINED_STRING: // Flag not specified
-		return
-	default:
-		fmt.Println("Unsupported data template specified")
-	}
-
-	// Since this is a data setup function exit to allow users to customize data values
-	os.Exit(0)
 }
 
 func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {

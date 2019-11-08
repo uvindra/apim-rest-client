@@ -82,7 +82,6 @@ func main() {
 
 	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
 	callCommand := flag.NewFlagSet("call", flag.ExitOnError)
-	createDataCommand := flag.NewFlagSet("create-data", flag.ExitOnError)
 
 	productVersion := initCommand.String("version", constants.UNDEFINED_STRING, "APIM product version being used(example: 2.1.0)")
 
@@ -92,8 +91,6 @@ func main() {
 	callCommand.StringVar(&apiOptions.Body, "body", constants.UNDEFINED_STRING, "File path to content of HTTP body(example: ./body.json)")
 
 	callCommand.Var(&queryParams, "query-param", "")
-
-	dataTemplate := createDataCommand.String("template", constants.UNDEFINED_STRING, "Create specified data template to be sent in request")
 
 	//flag.Parse()
 
@@ -107,8 +104,6 @@ func main() {
 		initCommand.Parse(os.Args[2:])
 	case "call":
 		callCommand.Parse(os.Args[2:])
-	case "create-data":
-		createDataCommand.Parse(os.Args[2:])
 	default:
 		flag.PrintDefaults()
 		os.Exit(1)
@@ -117,10 +112,6 @@ func main() {
 	if initCommand.Parsed() {
 		persist.GenerateConfig(productVersion)
 		os.Exit(0)
-	}
-
-	if createDataCommand.Parsed() {
-		cmd.CreateData(*dataTemplate)
 	}
 
 	if callCommand.Parsed() {
