@@ -41,6 +41,26 @@ func CreatePut(url string, body io.Reader) *http.Request {
 	return req
 }
 
+func CreatePostEmptyBody(url string) *http.Request {
+	req, err := http.NewRequest("POST", url, nil)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return req
+}
+
+func CreatePutEmptyBody(url string) *http.Request {
+	req, err := http.NewRequest("PUT", url, nil)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return req
+}
+
 func CreateDelete(url string) *http.Request {
 	req, err := http.NewRequest("DELETE", url, nil)
 

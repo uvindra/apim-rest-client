@@ -51,6 +51,7 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	case "store":
 		basePath = basePaths.StoreAPI
 	case "admin":
+		basePath = basePaths.AdminAPI
 	default:
 		fmt.Println("Unsupported API base path")
 		return
@@ -66,9 +67,21 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	case "DELETE":
 		req = comm.CreateDelete(fullPath)
 	case "POST":
-		req = comm.CreatePost(fullPath, getBodyContent(apiOptions))
+		body := getBodyContent(apiOptions)
+
+		if body == nil {
+			req = comm.CreatePostEmptyBody(fullPath)
+		} else {
+			req = comm.CreatePost(fullPath, body)
+		}
 	case "PUT":
-		req = comm.CreatePut(fullPath, getBodyContent(apiOptions))
+		body := getBodyContent(apiOptions)
+
+		if body == nil {
+			req = comm.CreatePutEmptyBody(fullPath)
+		} else {
+			req = comm.CreatePut(fullPath, body)
+		}
 	}
 
 	comm.SetRestAPIHeaders(token, req)
