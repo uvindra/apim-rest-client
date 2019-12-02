@@ -72,13 +72,24 @@ func getTokens(credentials *persist.OAuthCredentials, confJSON *persist.Config) 
 
 func main() {
 	apiOptions := cmd.APIOptions{}
+	headers := cmd.FlagMap{}
 	queryParams := cmd.FlagMap{}
+	formData := cmd.FlagMap{}
 
 	// Customize flag usage output to prevent default values being printed
-	//flag.Usage = func() {
-	//	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-	//	flag.PrintDefaults()
-	//}
+	flag.Usage = func() {
+		usageText := "APIM REST Client.\n" +
+			"\n" +
+			"Usage: \n" +
+			"  arc init \n" +
+			"  arc call --api (\"publisher\"|\"store\"|\"admin\") --method (\"GET\"|\"POST\"|\"PUT\"|\"DELETE\") --resource \"<resource-path>\" \n" +
+			"           [--query-param \"<param-name>:<param-value>\"] [--body \"<file-path>\"] \n" +
+			"\n" +
+			"Options: \n" +
+			"  -h --help     Show this screen. \n"
+
+		fmt.Println(usageText)
+	}
 
 	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
 	callCommand := flag.NewFlagSet("call", flag.ExitOnError)
@@ -90,12 +101,14 @@ func main() {
 	callCommand.StringVar(&apiOptions.Resource, "resource", constants.UNDEFINED_STRING, "Desired resource path(example: /apis)")
 	callCommand.StringVar(&apiOptions.Body, "body", constants.UNDEFINED_STRING, "File path to content of HTTP body(example: ./body.json)")
 
+	callCommand.Var(&headers, "header", "")
 	callCommand.Var(&queryParams, "query-param", "")
+	callCommand.Var(&formData, "form-data", "")
 
-	//flag.Parse()
+	flag.Parse()
 
 	if len(os.Args) < 2 {
-		fmt.Println("Mandatory arguments missing.")
+		flag.Usage()
 		os.Exit(1)
 	}
 
@@ -105,7 +118,7 @@ func main() {
 	case "call":
 		callCommand.Parse(os.Args[2:])
 	default:
-		flag.PrintDefaults()
+		fmt.Printf("Unspported argument '%s' provided\n", os.Args[1])
 		os.Exit(1)
 	}
 
@@ -115,7 +128,9 @@ func main() {
 	}
 
 	if callCommand.Parsed() {
+		apiOptions.Headers = &headers
 		apiOptions.QueryParams = &queryParams
+		apiOptions.FormData = &formData
 
 		fmt.Printf("apiOptions: %+v\n", apiOptions)
 

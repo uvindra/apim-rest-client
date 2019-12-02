@@ -13,7 +13,9 @@ type APIOptions struct {
 	API         string
 	Method      string
 	Resource    string
+	Headers     *FlagMap
 	QueryParams *FlagMap
+	FormData    *FlagMap
 	Body        string
 }
 
@@ -41,6 +43,8 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	fullPath := basePath + apiOptions.Resource
 
 	var req *http.Request
+	var body *bytes.Buffer
+	var contentType string
 
 	switch apiOptions.Method {
 	case "GET":
@@ -48,7 +52,7 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	case "DELETE":
 		req = comm.CreateDelete(fullPath)
 	case "POST":
-		body := getBodyContent(apiOptions)
+		body, contentType = getBodyContent(apiOptions)
 
 		if body == nil {
 			req = comm.CreatePostEmptyBody(fullPath)
@@ -56,7 +60,7 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 			req = comm.CreatePost(fullPath, body)
 		}
 	case "PUT":
-		body := getBodyContent(apiOptions)
+		body, contentType = getBodyContent(apiOptions)
 
 		if body == nil {
 			req = comm.CreatePutEmptyBody(fullPath)
@@ -65,7 +69,15 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 		}
 	}
 
-	comm.SetRestAPIHeaders(token, req)
+	comm.SetDefaultRestAPIHeaders(token, contentType, req)
+
+	headers := http.Header{}
+
+	for k, v := range *apiOptions.Headers {
+		headers.Add(k, v)
+	}
+
+	comm.AddHeaders(&headers, req)
 
 	values := req.URL.Query()
 	for k, v := range *apiOptions.QueryParams {
@@ -83,16 +95,33 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	comm.PrintResponse(constants.REST_API_RESPONSE_LOG_STRING, resp)
 }
 
-func getBodyContent(apiOptions *APIOptions) (body *bytes.Buffer) {
+func getBodyContent(apiOptions *APIOptions) (body *bytes.Buffer, contentType string) {
 	if apiOptions.Body != constants.UNDEFINED_STRING {
-		content, err := ioutil.ReadFile(apiOptions.Body)
+		return bytes.NewBuffer(readData(apiOptions.Body)), constants.UNDEFINED_STRING
+	}
+
+	data := map[string]string{}
+	for k, v := range *apiOptions.FormData {
+		data[k] = v
+	}
+
+	if len(*apiOptions.FormData) != 0 {
+		return comm.CreateMultipartFormData(&data)
+	}
+
+	return nil, constants.UNDEFINED_STRING
+}
+
+func readData(data string) []byte {
+	if data[0] == '@' {
+		content, err := ioutil.ReadFile(data[1:])
 
 		if err != nil {
 			panic(err)
 		}
 
-		return bytes.NewBuffer(content)
+		return content
 	}
 
-	return nil
+	return []byte(data)
 }

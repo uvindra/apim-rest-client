@@ -1,14 +1,17 @@
 package comm
 
 import (
+	"apim-rest-client/constants"
+	"bytes"
+	"crypto/tls"
+	"encoding/base64"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"crypto/tls"
-	"encoding/base64"
-	"io"
-	"apim-rest-client/constants"
+	"os"
 )
 
 func CreateGet(url string) *http.Request {
@@ -71,10 +74,65 @@ func CreateDelete(url string) *http.Request {
 	return req
 }
 
+func AddHeaders(headers *http.Header, request *http.Request) {
+	isOverrideContentType := false
+
+	for k, v := range *headers {
+		// If Content-Type header exists among the supplied headers,
+		// this shows intent to set the value of the Content-Type
+		// explicitly. Therefore remove the default Content-Type
+		// that has been set
+		if isOverrideContentType == false && k == "Content-Type" {
+			request.Header.Del(k)
+			isOverrideContentType = true
+		}
+
+		for _, value := range v {
+			request.Header.Add(k, value)
+		}
+	}
+}
+
 func AddQueryParams(params *url.Values, request *http.Request) {
 	request.URL.RawQuery = params.Encode()
 }
 
+func CreateMultipartFormData(formData *map[string]string) (body *bytes.Buffer, contentType string) {
+	buffer := new(bytes.Buffer)
+	w := multipart.NewWriter(buffer)
+	var err error
+	var fw io.Writer
+
+	for k, v := range *formData {
+		if v[0] == '@' {
+			file, err := os.Open(v[1:])
+
+			if err != nil {
+				panic(err)
+			}
+
+			if fw, err = w.CreateFormFile(k, file.Name()); err != nil {
+				panic(err)
+			}
+
+			if _, err = io.Copy(fw, file); err != nil {
+				panic(err)
+			}
+
+		} else {
+			if fw, err = w.CreateFormField(k); err != nil {
+				panic(err)
+			}
+
+			fw.Write([]byte(v))
+		}
+
+	}
+
+	w.Close()
+
+	return buffer, w.FormDataContentType()
+}
 
 func SendHTTPRequest(request *http.Request) *http.Response {
 	tr := &http.Transport{
@@ -97,9 +155,9 @@ func PrintRequest(logString string, request *http.Request) {
 		panic(err)
 	}
 
-	fmt.Printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", logString);
+	fmt.Printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", logString)
 	fmt.Printf("\n%s\n", dump)
-	fmt.Printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+	fmt.Printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
 }
 
 func PrintResponse(logString string, response *http.Response) {
@@ -111,31 +169,33 @@ func PrintResponse(logString string, response *http.Response) {
 
 	//content, _ := json.MarshalIndent(dump, "", "    ")
 
-	fmt.Printf("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< %s <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", logString);
+	fmt.Printf("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< %s <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", logString)
 	fmt.Printf("\n%s\n", dump)
-	fmt.Printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+	fmt.Printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 }
 
+func SetDefaultRestAPIHeaders(token string, contentType string, request *http.Request) {
+	request.Header.Set(constants.AUTH_HEADER, "Bearer "+token)
 
-func SetRestAPIHeaders(token string, request *http.Request) {
-	request.Header.Set(constants.AUTH_HEADER, "Bearer " + token)
-	request.Header.Set("Content-Type", "application/json")
+	if contentType == constants.UNDEFINED_STRING {
+		request.Header.Set("Content-Type", "application/json")
+	} else {
+		request.Header.Set("Content-Type", contentType)
+	}
 }
-
 
 func SetTokenAPIHeaders(clientID string, clientSecret string, request *http.Request) {
 	var authHeader = clientID + ":" + clientSecret
 	encoded := base64.StdEncoding.EncodeToString([]byte(authHeader))
 
-	request.Header.Set(constants.AUTH_HEADER, "Basic " + encoded)
+	request.Header.Set(constants.AUTH_HEADER, "Basic "+encoded)
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 }
 
-
 func SetDCRHeaders(userName string, password string, request *http.Request) {
-	var authHeader = userName + ":" + password;
+	var authHeader = userName + ":" + password
 	encoded := base64.StdEncoding.EncodeToString([]byte(authHeader))
 
-	request.Header.Set(constants.AUTH_HEADER, "Basic " + encoded)
+	request.Header.Set(constants.AUTH_HEADER, "Basic "+encoded)
 	request.Header.Set("Content-Type", "application/json")
 }

@@ -2,8 +2,7 @@ package cmd
 
 import (
 	"strings"
-	//"apim-rest-client/constants"
-	)
+)
 
 type FlagMap map[string]string
 
