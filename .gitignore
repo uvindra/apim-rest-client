@@ -1,5 +1,5 @@
 # Persistent data
-auth_info.json
+.auth_info.json
 config.json
 
 # Executable
