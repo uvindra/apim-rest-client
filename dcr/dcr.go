@@ -1,42 +1,44 @@
 package dcr
 
 import (
-	"fmt"
-	"encoding/json"
-	"log"
-	"bytes"
 	"apim-rest-client/comm"
 	"apim-rest-client/constants"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
 )
 
 type DCRRequest struct {
-	CallbackURL    string `json:"callbackUrl"`
-	ClientName     string `json:"clientName"`
-	TokenScope     string `json:"tokenScope"`
-	Owner    string `json:"owner"`
+	CallbackURL         string `json:"callbackUrl"`
+	ClientName          string `json:"clientName"`
+	TokenScope          string `json:"tokenScope"`
+	Owner               string `json:"owner"`
 	SupportedGrantTypes string `json:"grantType"`
-	IsSaaSApp   bool `json:"saasApp"`
+	IsSaaSApp           bool   `json:"saasApp"`
 }
 
 type JsonString struct {
-	UserName    string `json:"username"`
-	ClientName     string `json:"client_name"`
-	RedirectURIs     string `json:"redirect_uris"`
-	GrantTypes    string `json:"grant_types"`
+	UserName     string `json:"username"`
+	ClientName   string `json:"client_name"`
+	RedirectURIs string `json:"redirect_uris"`
+	GrantTypes   string `json:"grant_types"`
 }
 
 type DCRResponse struct {
-	CallbackURL    string `json:"callBackURL"`
-	ClientName     string `json:"clientName"`
-	JsonString     *JsonString `json:"jsonString"`
-	ClientId    string `json:"clientId"`
-	ClientSecret string `json:"clientSecret"`
-	IsSaaSApp   bool `json:"isSaasApplication"`
-	Owner    string `json:"appOwner"`
+	CallbackURL  string      `json:"callBackURL"`
+	ClientName   string      `json:"clientName"`
+	JsonString   *JsonString `json:"jsonString"`
+	ClientId     string      `json:"clientId"`
+	ClientSecret string      `json:"clientSecret"`
+	IsSaaSApp    bool        `json:"isSaasApplication"`
+	Owner        string      `json:"appOwner"`
 }
 
-func Register(dcrURL string, userName string, password string, regInfo DCRRequest) DCRResponse {
-	fmt.Println("Register " + regInfo.ClientName + " with DCR")
+func Register(dcrURL string, userName string, password string, regInfo DCRRequest, isVerbose bool) DCRResponse {
+	if isVerbose {
+		fmt.Println("Register " + regInfo.ClientName + " with DCR")
+	}
 
 	data, err := json.Marshal(regInfo)
 
@@ -48,24 +50,29 @@ func Register(dcrURL string, userName string, password string, regInfo DCRReques
 
 	comm.SetDCRHeaders(userName, password, req)
 
-	comm.PrintRequest(constants.DCR_REQUEST_LOG_STRING, req)
+	if isVerbose {
+		comm.PrintRequest(constants.DCR_REQUEST_LOG_STRING, req)
+	}
 
 	resp := comm.SendHTTPRequest(req)
 
-	comm.PrintResponse(constants.DCR_RESPONSE_LOG_STRING, resp)
+	if isVerbose {
+		comm.PrintResponse(constants.DCR_RESPONSE_LOG_STRING, resp)
+	}
 
 	defer resp.Body.Close()
 
 	var jsonResp DCRResponse
 	json.NewDecoder(resp.Body).Decode(&jsonResp)
 
-	fmt.Println()
-	fmt.Println(jsonResp)
+	if isVerbose {
+		fmt.Println()
+		fmt.Println(jsonResp)
 
-	fmt.Println()
-	fmt.Printf("ClientId : %s\n", jsonResp.ClientId)
-	fmt.Printf("ClientSecret : %s\n", jsonResp.ClientSecret)
+		fmt.Println()
+		fmt.Printf("ClientId : %s\n", jsonResp.ClientId)
+		fmt.Printf("ClientSecret : %s\n", jsonResp.ClientSecret)
+	}
 
 	return jsonResp
 }
-

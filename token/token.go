@@ -22,12 +22,16 @@ type Error struct {
 	ErrorDescription string `json:"error_description"`
 }
 
-func invokeTokenAPI(request *http.Request) (TokenResponse, *Error) {
-	comm.PrintRequest(constants.TOKEN_API_REQUEST_LOG_STRING, request)
+func invokeTokenAPI(request *http.Request, isVerbose bool) (TokenResponse, *Error) {
+	if isVerbose {
+		comm.PrintRequest(constants.TOKEN_API_REQUEST_LOG_STRING, request)
+	}
 
 	resp := comm.SendHTTPRequest(request)
 
-	comm.PrintResponse(constants.TOKEN_API_RESPONSE_LOG_STRING, resp)
+	if isVerbose {
+		comm.PrintResponse(constants.TOKEN_API_RESPONSE_LOG_STRING, resp)
+	}
 
 	defer resp.Body.Close()
 
@@ -48,8 +52,11 @@ func invokeTokenAPI(request *http.Request) (TokenResponse, *Error) {
 }
 
 func RequestToken_PasswordGrant(tokenURL string, clientID string, clientSecret string,
-	userName string, password string, scope string) (TokenResponse, *Error) {
-	fmt.Println("Request new token with password grant")
+	userName string, password string, scope string, isVerbose bool) (TokenResponse, *Error) {
+
+	if isVerbose {
+		fmt.Println("Request new token with password grant")
+	}
 
 	req := comm.CreatePost(tokenURL, nil)
 
@@ -63,12 +70,15 @@ func RequestToken_PasswordGrant(tokenURL string, clientID string, clientSecret s
 
 	comm.AddQueryParams(&values, req)
 
-	return invokeTokenAPI(req)
+	return invokeTokenAPI(req, isVerbose)
 }
 
 func RefreshToken(tokenURL string, clientID string, clientSecret string,
-	refreshToken string, scope string) (TokenResponse, *Error) {
-	fmt.Println("Refresh token")
+	refreshToken string, scope string, isVerbose bool) (TokenResponse, *Error) {
+
+	if isVerbose {
+		fmt.Println("Refresh token")
+	}
 
 	req := comm.CreatePost(tokenURL, nil)
 
@@ -80,5 +90,5 @@ func RefreshToken(tokenURL string, clientID string, clientSecret string,
 	values.Add(constants.SCOPE_HEADER, scope)
 	comm.AddQueryParams(&values, req)
 
-	return invokeTokenAPI(req)
+	return invokeTokenAPI(req, isVerbose)
 }

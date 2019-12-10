@@ -3,10 +3,14 @@ package cmd
 import (
 	"apim-rest-client/comm"
 	"apim-rest-client/constants"
+	"apim-rest-client/dcr"
+	"apim-rest-client/persist"
+	"apim-rest-client/token"
 	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type APIOptions struct {
@@ -17,12 +21,80 @@ type APIOptions struct {
 	QueryParams *FlagMap
 	FormData    *FlagMap
 	Body        string
+	IsVerbose   bool
 }
 
 type BasePaths struct {
 	PublisherAPI string
 	StoreAPI     string
 	AdminAPI     string
+}
+
+func RefreshExistingTokens(confJSON *persist.Config, isVerbose bool) {
+	if isVerbose {
+		fmt.Println("Credentials already exist")
+	}
+
+	credentials := persist.ReadAppCredentials()
+
+	tokenResp, error := token.RefreshToken(confJSON.TokenURL, credentials.ClientID, credentials.ClientSecret,
+		credentials.RefreshToken, confJSON.Scope, isVerbose)
+
+	if error != nil {
+		fmt.Printf("Error returned in when refreshing token. error : %s, error_description : %s\n",
+			error.ErrorType, error.ErrorDescription)
+
+		if error.ErrorType == "invalid_client" {
+			fmt.Println("\nRegistered client does not exist, please execute `arc clear` and then rerun the desired command.")
+			os.Exit(1)
+		}
+
+		tokenResp, error = token.RequestToken_PasswordGrant(confJSON.TokenURL, credentials.ClientID,
+			credentials.ClientSecret, confJSON.UserName, confJSON.Password, confJSON.Scope, isVerbose)
+	}
+
+	if error == nil {
+		// Store new access token and refresh token
+		credentials.AccessToken = tokenResp.AccessToken
+		credentials.RefreshToken = tokenResp.RefreshToken
+
+		persist.SaveAppCredentials(&credentials)
+	} else {
+		fmt.Printf("Error returned in when requesting new token. error : %s, error_description : %s\n",
+			error.ErrorType, error.ErrorDescription)
+	}
+}
+
+func RegisterClient(confJSON *persist.Config, isVerbose bool) persist.OAuthCredentials {
+	if isVerbose {
+		fmt.Println("Credentials do not exist")
+	}
+
+	var dcrRequest dcr.DCRRequest
+	dcr.SetDCRParameters(&dcrRequest, confJSON.UserName)
+
+	dcrResp := dcr.Register(confJSON.DcrURL, confJSON.UserName, confJSON.Password, dcrRequest, isVerbose)
+
+	var credentials persist.OAuthCredentials
+	credentials.ClientID = dcrResp.ClientId
+	credentials.ClientSecret = dcrResp.ClientSecret
+
+	return credentials
+}
+
+func GetTokens(credentials *persist.OAuthCredentials, confJSON *persist.Config, isVerbose bool) {
+	tokenResp, error := token.RequestToken_PasswordGrant(confJSON.TokenURL, credentials.ClientID,
+		credentials.ClientSecret, confJSON.UserName, confJSON.Password, confJSON.Scope, isVerbose)
+
+	if error == nil {
+		credentials.AccessToken = tokenResp.AccessToken
+		credentials.RefreshToken = tokenResp.RefreshToken
+
+		persist.SaveAppCredentials(credentials)
+	} else {
+		fmt.Printf("Error returned in when requesting new token. error : %s, error_description : %s\n",
+			error.ErrorType, error.ErrorDescription)
+	}
 }
 
 func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
@@ -86,7 +158,9 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 
 	comm.AddQueryParams(&values, req)
 
-	comm.PrintRequest(constants.REST_API_REQUEST_LOG_STRING, req)
+	if apiOptions.IsVerbose {
+		comm.PrintRequest(constants.REST_API_REQUEST_LOG_STRING, req)
+	}
 
 	resp := comm.SendHTTPRequest(req)
 
