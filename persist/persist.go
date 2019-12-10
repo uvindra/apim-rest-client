@@ -1,13 +1,12 @@
 package persist
 
 import (
-	"apim-rest-client/constants"
 	"encoding/json"
 	"io/ioutil"
 	"os"
 )
 
-const OAUTH_CREDENTIAL_FILE = "auth_info.json"
+const OAUTH_CREDENTIAL_FILE = ".auth_info.json"
 const CONFIG_FILE = "config.json"
 
 type OAuthCredentials struct {
@@ -37,16 +36,20 @@ func SaveAppCredentials(credentials *OAuthCredentials) {
 	}
 }
 
-func GenerateConfig(version *string) {
-	if *version == constants.UNDEFINED_STRING {
-		*version = "v0.11"
-	}
+func DeleteAppCredentials() {
+	err := os.Remove(OAUTH_CREDENTIAL_FILE)
 
+	if err != nil {
+		panic(err)
+	}
+}
+
+func GenerateConfig() {
 	config := Config{}
-	config.DcrURL = "http://localhost:9763/client-registration/" + *version + "/register"
-	config.PublisherAPI = "https://localhost:9443/api/am/publisher/" + *version
-	config.StoreAPI = "https://localhost:9443/api/am/store/" + *version
-	config.AdminAPI = "https://localhost:9443/api/am/admin/" + *version
+	config.DcrURL = "http://localhost:9763/client-registration/{version}/register"
+	config.PublisherAPI = "https://localhost:9443/api/am/publisher/{version}"
+	config.StoreAPI = "https://localhost:9443/api/am/store/{version}"
+	config.AdminAPI = "https://localhost:9443/api/am/admin/{version}"
 	config.UserName = "admin"
 	config.Password = "admin"
 	config.TokenURL = "https://localhost:8243/token"
