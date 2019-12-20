@@ -7,6 +7,7 @@ import (
 	"apim-rest-client/persist"
 	"apim-rest-client/token"
 	"bytes"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -28,6 +29,40 @@ type BasePaths struct {
 	PublisherAPI string
 	StoreAPI     string
 	AdminAPI     string
+}
+
+func Validate(apiOptions *APIOptions) {
+	if apiOptions.IsVerbose {
+		fmt.Printf("apiOptions: %+v\n", apiOptions)
+	}
+
+	if !persist.IsConfigExists() {
+		fmt.Println("'config.json' file does not exist. Please execute 'arc init' to create the config file")
+		os.Exit(1)
+	}
+
+	if stringInList(constants.UNDEFINED_STRING, []string{apiOptions.API, apiOptions.Method, apiOptions.Resource}) {
+		fmt.Println("Mandatory arguments 'api', 'method' and 'resource' need to be provided.")
+		fmt.Println()
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if !stringInList(apiOptions.API, []string{constants.PublisherAPI, constants.StoreAPI, constants.AdminAPI}) {
+		fmt.Printf("Unsupported value %s provided 'api' argument", apiOptions.API)
+		fmt.Println()
+		fmt.Println()
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if !stringInList(apiOptions.Method, []string{constants.GET, constants.POST, constants.PUT, constants.DELETE}) {
+		fmt.Printf("Unsupported value %s provided 'method' argument", apiOptions.Method)
+		fmt.Println()
+		fmt.Println()
+		flag.Usage()
+		os.Exit(1)
+	}
 }
 
 func RefreshExistingTokens(confJSON *persist.Config, isVerbose bool) {
@@ -101,11 +136,11 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	var basePath string
 
 	switch apiOptions.API {
-	case "publisher":
+	case constants.PublisherAPI:
 		basePath = basePaths.PublisherAPI
-	case "store":
+	case constants.StoreAPI:
 		basePath = basePaths.StoreAPI
-	case "admin":
+	case constants.AdminAPI:
 		basePath = basePaths.AdminAPI
 	default:
 		fmt.Println("Unsupported API base path")
@@ -119,11 +154,11 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 	var contentType string
 
 	switch apiOptions.Method {
-	case "GET":
+	case constants.GET:
 		req = comm.CreateGet(fullPath)
-	case "DELETE":
+	case constants.DELETE:
 		req = comm.CreateDelete(fullPath)
-	case "POST":
+	case constants.POST:
 		body, contentType = getBodyContent(apiOptions)
 
 		if body == nil {
@@ -131,7 +166,7 @@ func InvokeAPI(apiOptions *APIOptions, basePaths *BasePaths, token string) {
 		} else {
 			req = comm.CreatePost(fullPath, body)
 		}
-	case "PUT":
+	case constants.PUT:
 		body, contentType = getBodyContent(apiOptions)
 
 		if body == nil {
@@ -198,4 +233,13 @@ func readData(data string) []byte {
 	}
 
 	return []byte(data)
+}
+
+func stringInList(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

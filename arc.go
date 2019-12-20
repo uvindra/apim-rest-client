@@ -62,6 +62,9 @@ func main() {
 		callCommand.Parse(os.Args[2:])
 	default:
 		fmt.Printf("Unspported argument '%s' provided\n", os.Args[1])
+		fmt.Println()
+		fmt.Println()
+		flag.Usage()
 		os.Exit(1)
 	}
 
@@ -80,14 +83,7 @@ func main() {
 		apiOptions.QueryParams = &queryParams
 		apiOptions.FormData = &formData
 
-		if apiOptions.IsVerbose {
-			fmt.Printf("apiOptions: %+v\n", apiOptions)
-		}
-
-		if !persist.IsConfigExists() {
-			fmt.Println("'config/config.json' file does not exist. Please execute 'arc init' to create the config file")
-			os.Exit(1)
-		}
+		cmd.Validate(&apiOptions)
 
 		confJSON := persist.ReadConfig()
 
@@ -108,4 +104,5 @@ func main() {
 
 		cmd.InvokeAPI(&apiOptions, &basePaths, credentials.AccessToken)
 	}
+
 }

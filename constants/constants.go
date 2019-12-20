@@ -4,7 +4,7 @@ const AUTH_HEADER = "Authorization"
 const GRANT_TYPE_HEADER = "grant_type"
 const USER_NAME_HEADER = "username"
 const PASSWORD_HEADER = "password"
-const SCOPE_HEADER= "scope"
+const SCOPE_HEADER = "scope"
 const REFRESH_TOKEN_HEADER = "refresh_token"
 
 const PASSWORD_GRANT_TYPE = "password"
@@ -14,9 +14,23 @@ const LIMIT_KEY = "limit"
 const OFFSET_KEY = "offset"
 const QUERY_KEY = "query"
 
-
 const UNDEFINED_STRING = "N/A"
 const UNDEFINED_INT = -1
+
+// Supported REST APIs
+const (
+	PublisherAPI = "publisher"
+	StoreAPI     = "store"
+	AdminAPI     = "admin"
+)
+
+// Supported REST API methods
+const (
+	GET    = "GET"
+	POST   = "POST"
+	PUT    = "PUT"
+	DELETE = "DELETE"
+)
 
 const DCR_REQUEST_LOG_STRING = "DCR Request"
 const DCR_RESPONSE_LOG_STRING = "DCR Response"
