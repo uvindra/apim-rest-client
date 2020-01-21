@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 )
 
 type DCRRequest struct {
@@ -61,6 +62,16 @@ func Register(dcrURL string, userName string, password string, regInfo DCRReques
 	}
 
 	defer resp.Body.Close()
+
+	contentType := resp.Header["Content-Type"][0]
+
+	// If DCR endpoint ebing invoked is invalid, an HTML error page will be returned.
+	// We cannot rely on checking the response code since it will always be 200.
+	// Therefore need to validate the Content Type of the response to detect this condition.
+	if contentType != "application/json" {
+		fmt.Println("\nInvalid response received for DCR request. Please check if configured DCR endpoint is correct.")
+		os.Exit(1)
+	}
 
 	var jsonResp DCRResponse
 	json.NewDecoder(resp.Body).Decode(&jsonResp)
